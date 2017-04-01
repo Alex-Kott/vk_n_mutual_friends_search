@@ -1,0 +1,235 @@
+<html>
+<head>
+<title> Mutual friends parser </title>
+<meta charset="utf-8">
+<style>
+
+p{
+  font-size: 1em;
+}
+
+input[type=number]{
+  padding: 5px;
+  border-radius: 5px;
+  width: 17%;
+  font-size: 1.3em;
+  text-align:center;
+}
+
+input[type=text]{
+  padding: 5px;
+  border-radius: 5px;
+  width: 55%;
+  font-size: 1.3em;
+  text-align:center;
+}
+</style>
+</head>
+<body>
+<h2 id="login">Login</h2>
+<h2 id="find">Find</h2>
+
+<div id="n-mutual-friends">
+<p>Юзер: <input type="text" name="user" id="user"></p>
+<p> Ссылки на тех, с кем у него <input type="number" min="1" name="friends-number" id="friends-number" size="5" value="1"> или больше общих друзей:</p>
+<button id="find-mutual-friends-users">Найти</button>
+
+
+</div>
+
+
+
+<script src="https://vk.com/js/api/openapi.js" type="text/javascript"></script>
+
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+<script type="text/javascript">
+var needUsers = [];
+var user_link;
+var user_id;
+var secondOrderFriends = [];
+var uniqFriends = [];
+var nMutualFriends = [];
+var userFriends = [];
+var to = 300; // timeout. По хорошему его нужно автоматически вычислять в зависимости от кол-ва друзей у юзера
+var stack = 0; // это не совсем стэк, скорее счётчик стэка
+
+var vk = {
+    data: {},
+    appID: 5955203,
+    appPermissions: 4260874,
+    init: function() {
+        (window.vkAsyncInit = function() {
+            VK.init({
+                apiId: vk.appID
+            });
+            VK.Auth.login(authInfo, vk.appPermissions);
+
+            function authInfo(response) {
+                //console.log(response)
+                if (response.session) {
+                    vk.data.user = response.session.user;
+                    $("#user").val(vk.data.user.href);
+                } else alert("Не удалось войти!");
+            }
+        })();
+    }
+}
+
+$(document).ready(vk.init());
+
+$("#find-mutual-friends-users").on("click", function() {
+    VK.Api.call('friends.get', {
+        user_id: user_id
+    }, function(r) {
+        getNumberOfMutualFriends(r.response)
+    })
+})
+
+function deleteDuplicate(){
+	var obj = {};
+	for(var i = 0; i<secondOrderFriends.length; i++){
+		var str = secondOrderFriends[i];
+		obj[str] = true;
+	}
+	uniqFriends = Object.keys(obj);
+	findMoreNMutual();
+}
+
+
+function getNumberOfMutualFriends(friends) {
+	userFriends = friends;
+    var friendsBatch;
+    var s = 25;
+    var req, resp;
+    var code;
+    for (var i = 0; i < friends.length/s; i++) {
+    	friendsBatch = friends.slice(s*i, s*(i+1));
+    	req = friendsBatch.join(",");
+    	code = `var friends = [`+req+`];
+		var secondFriends;
+		var j = 0;
+		var response;
+		while(j<friends.length){
+			response = API.friends.get({user_id: friends[j], v: 5.8}).items;
+			secondFriends = secondFriends + response;
+			j=j+1;
+		}
+		return secondFriends;`
+    	VK.Api.call('execute', {
+    		code: code
+    	}, function(r){
+    		resp = r.response;
+    		var arr = resp.split(',')
+    		secondOrderFriends = secondOrderFriends.concat(arr);
+    	})
+    }
+    setTimeout(deleteDuplicate, to)
+    //setTimeout(findMoreNMutual, 300)
+}
+
+function findMoreNMutual() {
+
+	var numberOfMutualFriends = $("#friends-number").val();
+	var s = 25;
+	var friendsBatch = [];
+	var code, resp;
+	for(var i = 0; i<uniqFriends.length/s;i++){
+		friendsBatch = uniqFriends.slice(s*i, s*(i+1));
+		req = friendsBatch.join(",");
+		code = `var friends = [`+req+`];
+		var n = `+numberOfMutualFriends+`;
+		var user = `+user_id+`;
+		var response;
+		var j = 0;
+		var m;
+		var result= [];
+		while(j<friends.length){
+			
+			response = API.friends.getMutual({source_uid: user, target_uid: friends[j]});
+			m = response.length;
+			if(m>=n){
+				result.push(friends[j]);
+			}
+						
+			j = j+1;
+		}
+		return result;`
+		setTimeout(foo, i*360, code);
+	}
+}
+
+function foo(code){
+	stack++;
+	VK.Api.call('execute', {
+			code: code
+		}, function(r){
+			stack--;
+			if(r.error != undefined){
+				if(r.error.error_code == 6){
+				var code = r.error.request_params[3].value;
+				foo(code);
+				}
+			}else{
+				var respArray = r.response;
+				for(var i = 0; i<respArray.length; i++){
+					if(respArray[i] == user_id) continue;
+					if(userFriends.indexOf(respArray[i]) == -1){
+						nMutualFriends.push(respArray[i]);
+
+					}
+				}
+			}
+
+			/*
+			resp = r.response;
+			var arr = resp.split(',');
+			console.log(arr);*/
+		})
+}
+
+function getSecondOrderFriends(friend_id) { //deprecated
+    VK.Api.call('friends.get', {
+        user_id: friend_id
+    }, function(r){
+    	secondOrderFriends = secondOrderFriends.concat(r.response)
+    })//*/
+}
+
+
+$("#user").on("input", function() {
+    user_link = $("#user").val();
+    var re = /\/{0}\w*$/ig;
+    var screen_name = re.exec(user_link);
+    setUserId(screen_name[0]);
+})
+
+
+function setUserId(screen_name) {
+    VK.Api.call('users.get', {
+        user_ids: screen_name
+    }, function(r) {
+        user_id = r.response[0].uid;
+    })
+}
+
+$("#user").trigger("input")
+
+function stackUp(){
+	stack++;
+}
+
+function stackDown(){
+	stack--;
+	if(stack == 0){
+		console.log(nMutualFriends);
+	}
+}
+
+
+</script>
+
+</body>
+</html>
