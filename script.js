@@ -27,13 +27,18 @@ var vk = {
             VK.Auth.login(authInfo, vk.appPermissions);
 
             function authInfo(response) {
-                console.log(response)
+                //console.log(response);
                 if (response.session) {
                     vk.data.user = response.session.user;
                     $("#user").val(vk.data.user.href);
                     $("#login").css({"display":"none"});
                     $("#logout").css({"display":"block"});
                     isLogin = true;
+
+                    user_link = $("#user").val();
+				    var re = /\/{0}\w*$/ig;
+				    var screen_name = re.exec(user_link);
+				    setUserId(screen_name[0]);
                 } else alert("Не удалось войти!");
             }
         })();
@@ -62,11 +67,12 @@ $("#find-mutual-friends-users").on("click", function() {
 		return false;
 	}
 	$("#foundedUsers").empty();
-    VK.Api.call('friends.get', {
+	getNumberOfMutualFriends();
+    /*VK.Api.call('friends.get', {
         user_id: user_id
     }, function(r) {
         getNumberOfMutualFriends(r.response)
-    });
+    });//*/
     $("#foundedUsers").append(`
 		<div id="load" style="text-aligned: center;">
 			<center>
@@ -74,6 +80,18 @@ $("#find-mutual-friends-users").on("click", function() {
 			<center>
 		</div>`);
 })
+
+function getFriends(){
+	VK.Api.call('friends.get', {
+        user_id: user_id
+    }, function(r) {
+    	console.log(r);
+    	if(r.error == undefined){
+    		userFriends = r.response;
+    	}
+        //getNumberOfMutualFriends(r.response)
+    });
+}
 
 $("#stop-search").on("click", function(){
 	
@@ -95,8 +113,7 @@ function deleteDuplicate(){
 	findMoreNMutual();
 }
 
-function getNumberOfMutualFriends(friends) {
-	userFriends = friends;
+function getNumberOfMutualFriends() {
     var friendsBatch;
     var s = 25;
     var req, resp;
@@ -187,8 +204,9 @@ function foo(code){
 			//console.log(r)
 			if(r.error != undefined){
 				if(r.error.error_code == 6){
-				var code = r.error.request_params[3].value;
-				foo(code);
+					console.log(r)
+					var code = r.error.request_params[3].value;
+					foo(code);
 				}
 			}else{
 				var respArray = r.response;
@@ -212,7 +230,7 @@ function addFriend(friend){
 		user_ids: friend,
 		fields: "screen_name, photo_100"
 	}, function(r){
-		console.log(r)
+		//console.log(r)
 		if(r.response != undefined){
 			var user = r.response[0];
 			$("#load").before(`
@@ -268,6 +286,7 @@ function setUserId(screen_name) {
         user_ids: screen_name
     }, function(r) {
         user_id = r.response[0].uid;
+        getFriends();
     })
 }
 
