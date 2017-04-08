@@ -9,7 +9,7 @@ var uniqFriends = [];
 var nMutualFriends = [];
 var userFriends = [];
 var timeStamp;
-var intervalId;
+var intervalIds;
 var timeoutStack = [];
 var isLogin = false;
 var to = 500; // timeout. По хорошему его нужно автоматически вычислять в зависимости от кол-ва друзей у юзера
@@ -85,7 +85,6 @@ function getFriends(){
 	VK.Api.call('friends.get', {
         user_id: user_id
     }, function(r) {
-    	//console.log(r);
     	if(r.error == undefined){
     		userFriends = r.response;
     	}
@@ -183,8 +182,9 @@ function findMoreNMutual() {
 		return result;`
 		var timeoutId = setTimeout(foo, i*550, code);
 		timeoutStack.push(timeoutId);
-		intervalId = setInterval(checkProcess, 500);
 	}
+	intervalId = setInterval(checkProcess, 500);
+	//intervalIds.push(intervalId);
 }
 
 function checkProcess(){
@@ -213,7 +213,7 @@ function foo(code){
 	VK.Api.call('execute', {
 			code: code
 		}, function(r){
-			//console.log(r)
+			console.log(r)
 			if(r.error != undefined){
 				if(r.error.error_code == 6){
 					//console.log(r)
