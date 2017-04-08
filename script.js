@@ -221,7 +221,7 @@ function foo(code){
 					//console.log(r)
 					var code = r.error.request_params[3].value;
 					//foo(code);
-					setTimeout(foo, l*340, code);
+					setTimeout(foo, l*540, code);
 					l++;
 				}
 			}else{
