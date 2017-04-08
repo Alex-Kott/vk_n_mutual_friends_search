@@ -85,11 +85,10 @@ function getFriends(){
 	VK.Api.call('friends.get', {
         user_id: user_id
     }, function(r) {
-    	console.log(r);
+    	//console.log(r);
     	if(r.error == undefined){
     		userFriends = r.response;
     	}
-        //getNumberOfMutualFriends(r.response)
     });
 }
 
@@ -118,8 +117,8 @@ function getNumberOfMutualFriends() {
     var s = 25;
     var req, resp;
     var code;
-    for (var i = 0; i < friends.length/s; i++) {
-    	friendsBatch = friends.slice(s*i, s*(i+1));
+    for (var i = 0; i < userFriends.length/s; i++) {
+    	friendsBatch = userFriends.slice(s*i, s*(i+1));
     	req = friendsBatch.join(",");
     	code = `var friends = [`+req+`];
 		var secondFriends;
@@ -131,21 +130,29 @@ function getNumberOfMutualFriends() {
 			j=j+1;
 		}
 		return secondFriends;`
-    	VK.Api.call('execute', {
-    		code: code
-    	}, function(r){
-    		var resp = [];
-    		resp = r.response;
-    		var arr = resp.split(',')
-    		secondOrderFriends = secondOrderFriends.concat(arr);
-    	})
+		setTimeout(addSecondsFriends, i*340, code);
+
     }
-    setTimeout(deleteDuplicate, to);
+    setTimeout(deleteDuplicate, i*340);
     //setTimeout(findMoreNMutual, 300)
 }
 
-function findMoreNMutual() {
+function addSecondsFriends(code){
+	VK.Api.call('execute', {
+    		code: code
+    	}, function(r){
+    		//console.log(r)
+    		if(r.error == undefined){
+    			var resp = [];
+	    		resp = r.response;
+	    		var arr = resp.split(',')
+	    		secondOrderFriends = secondOrderFriends.concat(arr);
+    		}//*/
+    		
+    	})
+}
 
+function findMoreNMutual() {
 	var numberOfMutualFriends = $("#friends-number").val();
 	var min = $("#friends-min").val();
 	var max = $("#friends-max").val();
@@ -182,7 +189,10 @@ function findMoreNMutual() {
 
 function checkProcess(){
 	var now = (new Date()).getTime();
-	if((now - timeStamp) > 2000){
+	if((now-timeStamp) > 2000){
+		console.log(now-timeStamp)
+	}
+	if((now - timeStamp) > 5000){
 		clearInterval(intervalId);
 		endProcess();
 	}
@@ -196,6 +206,8 @@ function endProcess(){
 	$("#load").remove();
 }
 
+var l = 0;
+
 function foo(code){
 	timeStamp = (new Date()).getTime();
 	VK.Api.call('execute', {
@@ -204,9 +216,11 @@ function foo(code){
 			//console.log(r)
 			if(r.error != undefined){
 				if(r.error.error_code == 6){
-					console.log(r)
+					//console.log(r)
 					var code = r.error.request_params[3].value;
-					foo(code);
+					//foo(code);
+					setTimeout(foo, l*340, code);
+					l++;
 				}
 			}else{
 				var respArray = r.response;
@@ -234,7 +248,7 @@ function addFriend(friend){
 		if(r.response != undefined){
 			var user = r.response[0];
 			$("#load").before(`
-				<a target="_blank" href="https://vk.com/`+user.screen_name+`">
+				<a target="_blank" class="userlink" href="https://vk.com/`+user.screen_name+`">
 					<div class="user">
 						<img src="`+user.photo_100+`">
 						<p>`+user.first_name+` `+user.last_name+`</p>
