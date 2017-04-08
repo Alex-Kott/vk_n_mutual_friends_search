@@ -87,6 +87,8 @@ function getFriends(){
     }, function(r) {
     	if(r.error == undefined){
     		userFriends = r.response;
+    	}else{
+    		console.log(r.error)
     	}
     });
 }
