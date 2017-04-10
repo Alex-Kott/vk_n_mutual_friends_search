@@ -56,13 +56,28 @@ input[type=text]{
 #login-logout{
 	padding: 10px;
 }
+
+.result span{
+	font-size: 1.2em;
+}
+
+#result{
+	font-weight:bold;
+}
+
+#stop-search-row{
+	margin:5px 0;
+}
 </style>
 <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 
 </head>
 <body>
 <div class="row" id="login-logout">
-	<div class="col-lg-10 col-md-10 col-sm-10 col-xs-10"></div>
+	<div class="col-lg-2 col-md-2 col-sm-2 col-xs-2 result">
+		<span>Найдено: </span><span id="result">0</span>
+	</div>
+	<div class="col-lg-8 col-md-8 col-sm-8 col-xs-8"></div>
 	<div class="col-lg-2 col-md-2 col-sm-2 col-xs-2">
 		<button type="button" class="btn btn-primary btn-block" id="login">Login</button>
 		<button type="button" class="btn btn-danger btn-block" id="logout" style="display: none;">Logout</button>
@@ -75,11 +90,20 @@ input[type=text]{
 		<p> Максимум общих друзей: <input type="number" min="1" max="10000" name="friends-max" id="friends-max" size="5" value="10000"></p>
 		<p> Должен быть в группе: <input type="text"  name="group-link" id="group-link"></p>
 		<button type="button" class="btn btn-primary btn-block" id="find-mutual-friends-users">Go</button>
-		<button type="button" class="btn btn-danger btn-block" id="stop-search">Stop</button>
+	
+		
+		<div class="row" id="stop-search-row">
+			<div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 text-center">
+				<a  id="save-search">
+					<button type="button" class="btn btn-success btn-block " >Save</button>
+					</a>
+			</div>
+			<div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 text-center">
+				<button type="button" class="btn btn-danger btn-block " id="stop-search">Stop</button>
+			</div>
+		</div>
 	</div>
-	<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12" id="foundedUsers">
-
-	</div>
+	<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12" id="foundedUsers"></div>
 </div>
 
 

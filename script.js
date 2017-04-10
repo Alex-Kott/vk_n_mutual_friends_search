@@ -13,6 +13,8 @@ var intervalIds;
 var timeoutStack = [];
 var isLogin = false;
 var to = 500; // timeout. По хорошему его нужно автоматически вычислять в зависимости от кол-ва друзей у юзера
+var counter = 0;
+var report = "";
 
 
 var vk = {
@@ -206,6 +208,8 @@ function endProcess(){
 	nMutualFriends = [];
 	userFriends = [];
 	$("#load").remove();
+	counter = 0;
+	report = "";
 }
 
 var l = 0;
@@ -218,7 +222,6 @@ function foo(code){
 			console.log(r)
 			if(r.error != undefined){
 				if(r.error.error_code == 6){
-					//console.log(r)
 					var code = r.error.request_params[3].value;
 					//foo(code);
 					setTimeout(foo, l*540, code);
@@ -257,6 +260,8 @@ function addFriend(friend){
 					
 					</div>
 				</a>`);
+			$("#result").text(++counter)
+			report+="https://vk.com/"+user.screen_name+"\n";
 		}
 		
 	})
@@ -306,9 +311,13 @@ function setUserId(screen_name) {
     })
 }
 
-function setGroupId(){
-
-}
 
 $("#user").trigger("input")
 
+
+$("#save-search").on("click", function(){
+	var text = 'data:text/plain;charset=utf-8, ' + encodeURIComponent(report);
+	this.href = text;
+	this.target = "_blank";
+	this.download = 'mutual_friends.txt';
+})
