@@ -263,7 +263,7 @@ function addFriend(friend){
 					</div>
 				</a>`);
 			$("#result").text(++counter)
-			report+="https://vk.com/"+user.screen_name+"\n\r";
+			report+="https://vk.com/"+user.screen_name+"\r\n";
 		}
 		
 	})
