@@ -64,6 +64,9 @@ $("#logout").on("click", function(){
 
 
 $("#find-mutual-friends-users").on("click", function() {
+	$("#result").text("0");
+	counter = 0;
+	report = "";
 	if(!isLogin){
 		$("#login").trigger("click");
 		return false;
@@ -208,8 +211,7 @@ function endProcess(){
 	nMutualFriends = [];
 	userFriends = [];
 	$("#load").remove();
-	counter = 0;
-	report = "";
+	
 }
 
 var l = 0;
@@ -261,7 +263,7 @@ function addFriend(friend){
 					</div>
 				</a>`);
 			$("#result").text(++counter)
-			report+="https://vk.com/"+user.screen_name+"\n";
+			report+="https://vk.com/"+user.screen_name+"\n\r";
 		}
 		
 	})
